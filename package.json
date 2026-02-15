@@ -1,0 +1,75 @@
+{
+  "name": "agent-meter",
+  "version": "0.1.0",
+  "description": "Usage metering for the agent economy",
+  "author": "oztenbot",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/oztenbot/agent-meter.git"
+  },
+  "keywords": [
+    "agent",
+    "metering",
+    "usage",
+    "billing",
+    "api",
+    "middleware",
+    "express"
+  ],
+  "type": "module",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      },
+      "require": {
+        "types": "./dist/index.d.cts",
+        "default": "./dist/index.cjs"
+      }
+    },
+    "./express": {
+      "import": {
+        "types": "./dist/middleware/express.d.ts",
+        "default": "./dist/middleware/express.js"
+      },
+      "require": {
+        "types": "./dist/middleware/express.d.cts",
+        "default": "./dist/middleware/express.cjs"
+      }
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "build": "tsup",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "prepublishOnly": "npm run build"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.0",
+    "@types/node": "^20.11.0",
+    "express": "^4.21.0",
+    "tsup": "^8.0.0",
+    "typescript": "^5.5.0",
+    "vitest": "^2.0.0"
+  },
+  "peerDependencies": {
+    "express": ">=4.0.0"
+  },
+  "peerDependenciesMeta": {
+    "express": {
+      "optional": true
+    }
+  }
+}
