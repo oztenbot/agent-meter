@@ -34,6 +34,31 @@ export interface Transport {
   flush?(): void | Promise<void>;
 }
 
+export interface QueryFilter {
+  agentId?: string;
+  operation?: string;
+  serviceId?: string;
+  from?: string | Date;
+  to?: string | Date;
+  pricingModel?: PricingModel;
+  limit?: number;
+  offset?: number;
+}
+
+export interface UsageSummary {
+  totalRecords: number;
+  totalUnits: number;
+  uniqueAgents: number;
+  byOperation: Record<string, { count: number; units: number }>;
+  byAgent: Record<string, { count: number; units: number }>;
+}
+
+export interface QueryableTransport extends Transport {
+  query(filter?: QueryFilter): UsageRecord[] | Promise<UsageRecord[]>;
+  count(filter?: QueryFilter): number | Promise<number>;
+  summary(filter?: QueryFilter): UsageSummary | Promise<UsageSummary>;
+}
+
 export interface RouteOptions {
   operation?: string;
   units?: number | ((req: unknown) => number);

@@ -24,7 +24,13 @@ Subscriptions don't work when the buyer is a machine that can meter its own cons
 npm install agent-meter
 ```
 
-Zero runtime dependencies. Only uses Node.js built-in `crypto`.
+Zero runtime dependencies for the core SDK. Only uses Node.js built-in `crypto`.
+
+For persistent storage, optionally install:
+
+```bash
+npm install better-sqlite3
+```
 
 ## Quick Start
 
@@ -133,12 +139,43 @@ import { MemoryTransport } from "agent-meter";
 const transport = new MemoryTransport();
 // After requests...
 console.log(transport.records);
-transport.flush(); // clear
+
+// Query interface (same as SQLiteTransport)
+const records = transport.query({ agentId: "bot-123" });
+const count = transport.count({ operation: "GET /widgets" });
+const stats = transport.summary();
+
+transport.flush(); // clear all records
 ```
+
+### SQLiteTransport
+
+Persistent local storage with zero infrastructure. Records survive restarts and are queryable.
+
+```typescript
+import { SQLiteTransport } from "agent-meter/sqlite";
+
+const transport = new SQLiteTransport({
+  filename: "./usage.db",   // or :memory: for testing
+  tableName: "usage_records", // optional, default shown
+});
+
+// Records are persisted immediately on send
+// Query them later:
+const records = transport.query({ agentId: "bot-123", limit: 100 });
+const total = transport.count({ from: "2026-02-15T00:00:00.000Z" });
+const stats = transport.summary({ serviceId: "my-api" });
+// stats.totalRecords, stats.totalUnits, stats.uniqueAgents
+// stats.byOperation, stats.byAgent
+
+transport.close(); // when shutting down
+```
+
+Requires `better-sqlite3` as a peer dependency. Uses WAL mode for concurrent reads.
 
 ### HttpTransport
 
-Batches and POSTs records to a backend.
+Batches and POSTs records to a backend. Retries failed requests with exponential backoff.
 
 ```typescript
 import { HttpTransport } from "agent-meter";
@@ -148,6 +185,10 @@ const transport = new HttpTransport({
   headers: { Authorization: "Bearer sk-..." },
   batchSize: 10,          // flush every N records
   flushIntervalMs: 5000,  // or every 5 seconds
+  maxRetries: 3,          // retry failed requests (default: 3)
+  onError: (err, batch) => {
+    console.error(`Failed to send ${batch.length} records:`, err.message);
+  },
 });
 ```
 
@@ -185,8 +226,8 @@ Agent (X-Agent-Id header)
 └───────────┼──────────────┘
             ▼
 ┌─────────────────────────┐
-│  Transport               │
-│  (Memory, HTTP, custom)  │
+│  Transport                       │
+│  (Memory, SQLite, HTTP, custom)  │
 └─────────────────────────┘
 ```
 
@@ -202,9 +243,11 @@ The SDK is framework-agnostic at its core. `AgentMeter.record()` works with any 
 
 ## Roadmap
 
+- [x] SQLite transport (persistent local storage)
+- [x] Query interface (query, count, summary)
+- [x] HTTP retry with exponential backoff
 - [ ] Fastify adapter
 - [ ] Hono adapter
-- [ ] File transport (JSONL append)
 - [ ] Rate-limit awareness (meter + enforce)
 - [ ] Agent-side SDK (sign requests, attach identity)
 - [ ] Dashboard UI

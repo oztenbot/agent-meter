@@ -8,7 +8,10 @@ export type {
   AgentIdentity,
   MeterConfig,
   PricingModel,
+  QueryableTransport,
+  QueryFilter,
   RouteOptions,
   Transport,
   UsageRecord,
+  UsageSummary,
 } from "./types.js";
