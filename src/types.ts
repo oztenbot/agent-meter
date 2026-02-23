@@ -59,6 +59,24 @@ export interface QueryableTransport extends Transport {
   summary(filter?: QueryFilter): UsageSummary | Promise<UsageSummary>;
 }
 
+export interface Attestation {
+  batchId: string;
+  timestamp: string;
+  serviceId: string;
+  recordCount: number;
+  merkleRoot: string;
+  signature: string;
+  records: UsageRecord[];
+}
+
+export interface AttestationTransportOptions {
+  serviceId: string;
+  secret: string;
+  batchSize?: number;
+  onAttestation: (attestation: Attestation) => void | Promise<void>;
+  delegate?: Transport;
+}
+
 export interface RouteOptions {
   operation?: string;
   units?: number | ((req: unknown) => number);

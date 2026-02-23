@@ -1,6 +1,6 @@
 {
   "name": "agent-meter",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Usage metering for the agent economy",
   "author": "oztenbot",
   "license": "MIT",
