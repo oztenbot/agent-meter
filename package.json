@@ -1,5 +1,5 @@
 {
-  "name": "agent-meter",
+  "name": "@oztenbot/agent-meter",
   "version": "0.3.0",
   "description": "Usage metering for the agent economy",
   "author": "oztenbot",

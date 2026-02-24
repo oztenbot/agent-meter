@@ -253,6 +253,12 @@ The SDK is framework-agnostic at its core. `AgentMeter.record()` works with any 
 - [ ] Dashboard UI
 - [ ] Hosted billing backend
 
+## Documentation
+
+- **[Quickstart](docs/quickstart.md)** — Install, 3-line setup, verify it works
+- **[Overview](docs/overview.md)** — Architecture, design decisions, attestation, roadmap
+- **[Security Deep Dive](docs/security.md)** — Threat models, trust analysis, attack scenarios
+
 ## License
 
 MIT
