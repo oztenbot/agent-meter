@@ -248,46 +248,21 @@ If you're an agent (Claude Code, OpenClaw, or any framework supporting [agentski
 ### Claude Code
 
 ```bash
-# 1. Copy hooks and skill
-mkdir -p .claude/hooks .claude/skills/meter
-cp agent-meter/.claude/hooks/meter-capture.sh .claude/hooks/
-cp agent-meter/.claude/hooks/meter-session-end.sh .claude/hooks/
-cp agent-meter/.claude/skills/meter/SKILL.md .claude/skills/meter/
-chmod +x .claude/hooks/meter-capture.sh .claude/hooks/meter-session-end.sh
-
-# 2. Add hooks to .claude/settings.json (merge with existing)
+npx clawhub install agent-meter
 ```
 
-Add to your `settings.json`:
-```json
-{
-  "hooks": {
-    "PostToolUse": [
-      {
-        "matcher": "Bash",
-        "hooks": [{ "type": "command", "command": "/bin/bash .claude/hooks/meter-capture.sh" }]
-      }
-    ],
-    "Stop": [
-      {
-        "matcher": "",
-        "hooks": [{ "type": "command", "command": "/bin/bash .claude/hooks/meter-session-end.sh" }]
-      }
-    ]
-  }
-}
-```
-
-Then use `/meter` to see your spend.
+Then run `/meter` — it auto-installs hooks on first invocation.
 
 ### OpenClaw
 
 ```bash
-# 1. Add session parser to cron
-*/30 * * * * /path/to/agent-meter/scripts/meter-parse-sessions.sh
+npx clawhub install agent-meter
+```
 
-# 2. Copy skill file to your agent
-cp agent-meter/.claude/skills/meter/SKILL.md your-agent/skills/meter/SKILL.md
+Add the bundled session parser to cron for continuous coverage:
+
+```bash
+*/30 * * * * ~/.claude/skills/agent-meter/meter-parse-sessions.sh
 ```
 
 The parser reads OpenClaw's session JSONL files directly — 100% coverage, no behavioral compliance needed.
