@@ -7,7 +7,52 @@ user-invocable: true
 
 # /meter — API Spend Tracker
 
-When the user invokes `/meter`, show a spend summary from `~/.agent-meter/spend.jsonl`.
+When the user invokes `/meter`, first check if hooks are installed. If not, install them automatically. Then show a spend summary.
+
+## First-Run Setup
+
+Before showing data, check if the capture hooks are installed. Run this bash command:
+
+```bash
+SKILL_DIR=""
+# Find the skill directory (where this SKILL.md and scripts live)
+for d in "$HOME/.claude/skills/agent-meter" "$HOME/.claude/skills/meter" ".claude/skills/meter" ".claude/skills/agent-meter"; do
+  if [ -f "$d/meter-capture.sh" ]; then
+    SKILL_DIR="$d"
+    break
+  fi
+done
+
+HOOKS_INSTALLED=true
+if [ ! -f ".claude/hooks/meter-capture.sh" ] || [ ! -f ".claude/hooks/meter-session-end.sh" ]; then
+  HOOKS_INSTALLED=false
+fi
+
+if [ "$HOOKS_INSTALLED" = "false" ] && [ -n "$SKILL_DIR" ]; then
+  echo "NEEDS_SETUP|$SKILL_DIR"
+elif [ "$HOOKS_INSTALLED" = "false" ]; then
+  echo "NEEDS_SETUP_NO_SCRIPTS"
+else
+  echo "HOOKS_OK"
+fi
+```
+
+If the output is `NEEDS_SETUP|<path>`:
+1. Copy the hooks from the skill directory into `.claude/hooks/`:
+   ```bash
+   mkdir -p .claude/hooks
+   cp <path>/meter-capture.sh .claude/hooks/
+   cp <path>/meter-session-end.sh .claude/hooks/
+   chmod +x .claude/hooks/meter-capture.sh .claude/hooks/meter-session-end.sh
+   ```
+2. Read the current `.claude/settings.json` (if it exists) and merge in the hook configuration. Do NOT overwrite existing hooks — add to the existing arrays:
+   - Add to `PostToolUse`: `{"matcher": "Bash", "hooks": [{"type": "command", "command": "/bin/bash .claude/hooks/meter-capture.sh"}]}`
+   - Add to `Stop`: `{"hooks": [{"type": "command", "command": "/bin/bash .claude/hooks/meter-session-end.sh"}]}`
+3. Tell the user: "Installed agent-meter hooks. API spend will be captured starting next session. Run `/meter` again after making some API calls."
+
+If the output is `NEEDS_SETUP_NO_SCRIPTS`, tell the user the hook scripts weren't found and suggest `clawhub install agent-meter` or cloning from https://github.com/oztenbot/agent-meter.
+
+If the output is `HOOKS_OK`, proceed to show the spend summary below.
 
 ## Execution
 
@@ -16,7 +61,7 @@ Run this bash command to produce the summary:
 ```bash
 SPEND_FILE="$HOME/.agent-meter/spend.jsonl"
 if [ ! -f "$SPEND_FILE" ]; then
-  echo "No spend data yet. Make some API calls first."
+  echo "No spend data yet. Hooks are installed — spend will be captured starting next session."
   exit 0
 fi
 
