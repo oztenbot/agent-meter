@@ -1,4 +1,7 @@
 export { AgentMeter } from "./meter.js";
+export { AgentClient } from "./client.js";
+export type { AgentClientConfig, BudgetConfig, BudgetCheck } from "./client.js";
+export { BudgetTracker } from "./budget.js";
 export { MemoryTransport } from "./transport/memory.js";
 export { HttpTransport } from "./transport/http.js";
 export type { HttpTransportOptions } from "./transport/http.js";

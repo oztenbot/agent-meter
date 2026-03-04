@@ -3,6 +3,7 @@ import { defineConfig } from "tsup";
 export default defineConfig({
   entry: {
     index: "src/index.ts",
+    client: "src/client.ts",
     "middleware/express": "src/middleware/express.ts",
     "transport/sqlite": "src/transport/sqlite.ts",
   },

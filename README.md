@@ -241,23 +241,82 @@ The SDK is framework-agnostic at its core. `AgentMeter.record()` works with any 
 - **Non-blocking.** Metering never delays your API response.
 - **Extensible.** Custom transports, identification, pricing models, and hooks.
 
+## SKILL Install (Agents)
+
+If you're an agent (Claude Code, OpenClaw, or any framework supporting [agentskills.io](https://agentskills.io) skills), this is the fastest path.
+
+### Claude Code
+
+```bash
+# 1. Copy hooks and skill
+mkdir -p .claude/hooks .claude/skills/meter
+cp agent-meter/.claude/hooks/meter-capture.sh .claude/hooks/
+cp agent-meter/.claude/hooks/meter-session-end.sh .claude/hooks/
+cp agent-meter/.claude/skills/meter/SKILL.md .claude/skills/meter/
+chmod +x .claude/hooks/meter-capture.sh .claude/hooks/meter-session-end.sh
+
+# 2. Add hooks to .claude/settings.json (merge with existing)
+```
+
+Add to your `settings.json`:
+```json
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [{ "type": "command", "command": "/bin/bash .claude/hooks/meter-capture.sh" }]
+      }
+    ],
+    "Stop": [
+      {
+        "matcher": "",
+        "hooks": [{ "type": "command", "command": "/bin/bash .claude/hooks/meter-session-end.sh" }]
+      }
+    ]
+  }
+}
+```
+
+Then use `/meter` to see your spend.
+
+### OpenClaw
+
+```bash
+# 1. Add session parser to cron
+*/30 * * * * /path/to/agent-meter/scripts/meter-parse-sessions.sh
+
+# 2. Copy skill file to your agent
+cp agent-meter/.claude/skills/meter/SKILL.md your-agent/skills/meter/SKILL.md
+```
+
+The parser reads OpenClaw's session JSONL files directly — 100% coverage, no behavioral compliance needed.
+
+### How It Works
+
+All capture methods write to `~/.agent-meter/spend.jsonl` — one JSON record per API call. The SKILL's `/meter` command reads this file and produces spend summaries by project, model, and purpose.
+
+See **[Spend Schema](docs/spend-schema.md)** for the full field reference.
+
 ## Roadmap
 
 - [x] SQLite transport (persistent local storage)
 - [x] Query interface (query, count, summary)
 - [x] HTTP retry with exponential backoff
+- [x] SKILL-based agent install (Claude Code + OpenClaw)
+- [x] Automatic spend capture via hooks
 - [ ] Fastify adapter
 - [ ] Hono adapter
 - [ ] Rate-limit awareness (meter + enforce)
-- [ ] Agent-side SDK (sign requests, attach identity)
-- [ ] Dashboard UI
-- [ ] Hosted billing backend
+- [ ] Crabacus dashboard (spend visualization)
+- [ ] ClawHub publishing
 
 ## Documentation
 
 - **[Quickstart](docs/quickstart.md)** — Install, 3-line setup, verify it works
 - **[Overview](docs/overview.md)** — Architecture, design decisions, attestation, roadmap
 - **[Security Deep Dive](docs/security.md)** — Threat models, trust analysis, attack scenarios
+- **[Spend Schema](docs/spend-schema.md)** — JSONL schema for spend capture
 
 ## License
 

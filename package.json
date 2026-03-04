@@ -1,6 +1,6 @@
 {
   "name": "@oztenbot/agent-meter",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "Usage metering for the agent economy",
   "author": "oztenbot",
   "license": "MIT",
@@ -51,6 +51,16 @@
       "require": {
         "types": "./dist/transport/sqlite.d.cts",
         "default": "./dist/transport/sqlite.cjs"
+      }
+    },
+    "./client": {
+      "import": {
+        "types": "./dist/client.d.ts",
+        "default": "./dist/client.js"
+      },
+      "require": {
+        "types": "./dist/client.d.cts",
+        "default": "./dist/client.cjs"
       }
     }
   },
