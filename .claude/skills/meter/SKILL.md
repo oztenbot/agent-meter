@@ -61,12 +61,14 @@ If the user passes arguments like `/meter --by model` or `/meter --last 7d`, adj
 
 ## Quick Setup — Claude Code
 
-1. Copy the hooks to your project:
+All scripts are bundled in this skill package. After installing via `clawhub install agent-meter`, the scripts are at `.claude/skills/meter/`.
+
+1. Copy the bundled hooks to your project's hooks directory:
 
 ```bash
 mkdir -p .claude/hooks
-cp agent-meter/.claude/hooks/meter-capture.sh .claude/hooks/
-cp agent-meter/.claude/hooks/meter-session-end.sh .claude/hooks/
+cp .claude/skills/meter/meter-capture.sh .claude/hooks/
+cp .claude/skills/meter/meter-session-end.sh .claude/hooks/
 chmod +x .claude/hooks/meter-capture.sh .claude/hooks/meter-session-end.sh
 ```
 
@@ -101,20 +103,36 @@ chmod +x .claude/hooks/meter-capture.sh .claude/hooks/meter-session-end.sh
 }
 ```
 
-3. Copy this SKILL file to `.claude/skills/meter/SKILL.md` to enable `/meter`.
+### What the hooks do
+
+- **meter-capture.sh** (PostToolUse, Bash only): Reads the hook's stdin JSON. Fast-exits for non-API commands. When a Bash command targets a known LLM API (Anthropic, OpenAI, etc.), parses the response for token usage and appends a JSONL record to `~/.agent-meter/spend.jsonl`. No network calls, no secrets access, jq dependency only.
+- **meter-session-end.sh** (Stop): Aggregates all `api_call` records for the current session into a single `session_summary` record. Appends to the same spend.jsonl.
 
 ## Quick Setup — OpenClaw
 
-1. Add to your heartbeat or cron:
+The bundled `meter-parse-sessions.sh` script parses OpenClaw session transcripts for token/cost data.
+
+1. Copy the parser and make it executable:
+
+```bash
+cp .claude/skills/meter/meter-parse-sessions.sh ~/.local/bin/meter-parse-sessions.sh
+chmod +x ~/.local/bin/meter-parse-sessions.sh
+```
+
+2. Add to your heartbeat or cron:
 
 ```bash
 # Every 30 minutes, parse new sessions
-*/30 * * * * /path/to/agent-meter/scripts/meter-parse-sessions.sh
+*/30 * * * * ~/.local/bin/meter-parse-sessions.sh
 ```
 
-2. Copy this SKILL file to your agent's skills directory to enable `/meter`.
+### What the parser does
 
-OpenClaw writes session transcripts with token usage to `~/.openclaw/agents/<agentId>/sessions/*.jsonl`. The parser extracts this data with 100% coverage — no behavioral instruction compliance needed.
+Scans `~/.openclaw/agents/*/sessions/*.jsonl` for session transcripts. Extracts `message.usage.input_tokens`, `message.usage.output_tokens`, and `message.usage.cost.total`. Deduplicates against existing records by session ID. Appends new records with `"source": "session_parse"` to `~/.agent-meter/spend.jsonl`. No network calls, no secrets access, jq dependency only.
+
+## Source Code
+
+All scripts are included in this package and also available at: https://github.com/oztenbot/agent-meter
 
 ## Query Examples
 
