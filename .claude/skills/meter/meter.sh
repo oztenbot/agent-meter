@@ -185,3 +185,11 @@ jq -s '
     "    \(.[0].model): \(length) sessions, $\(map(.cost_usd) | add // 0 | . * 100 | round / 100)"
   ) | sort | reverse | join("\n"))
 ' "$SPEND_FILE" -r 2>/dev/null || echo "  (no data)"
+
+# --- Sync hint ---
+if [ ! -f "$SPEND_DIR/sync.json" ]; then
+  echo ""
+  echo "TIP: Sync to the dashboard at dashboard.agentmeter.io:"
+  echo "  chmod +x .claude/skills/agent-meter/meter-sync.sh"
+  echo "  .claude/skills/agent-meter/meter-sync.sh --setup"
+fi

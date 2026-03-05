@@ -1,7 +1,7 @@
 ---
 name: agent-meter
 description: "Track API spend with intent-level attribution. Shows where your tokens go by project and purpose. Invoke with /meter for spend summary."
-version: "0.5.0"
+version: "0.6.0"
 user-invocable: true
 ---
 
@@ -38,6 +38,21 @@ Then run `/meter` — it handles everything automatically:
 - Shows your spend summary
 
 That's it. Future sessions are tracked automatically via the Stop hook.
+
+### Dashboard sync (optional)
+
+To sync spend data to the hosted dashboard at [dashboard.agentmeter.io](https://dashboard.agentmeter.io):
+
+```bash
+chmod +x .claude/skills/agent-meter/meter-sync.sh
+.claude/skills/agent-meter/meter-sync.sh --setup
+```
+
+The setup wizard will prompt for your API key and agent name. Get a key from the dashboard's Machines page. After setup, sync anytime with:
+
+```bash
+.claude/skills/agent-meter/meter-sync.sh
+```
 
 ### What the scripts do
 
