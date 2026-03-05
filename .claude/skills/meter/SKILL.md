@@ -1,7 +1,7 @@
 ---
 name: agent-meter
 description: "Track API spend with intent-level attribution. Shows where your tokens go by project and purpose. Invoke with /meter for spend summary."
-version: "0.3.0"
+version: "0.5.0"
 user-invocable: true
 ---
 
@@ -23,42 +23,21 @@ Format the output as a clean markdown summary for the user.
 
 If the user passes arguments like `/meter --by model` or `/meter --last 7d`, append them: `bash .../meter.sh --last 7d`
 
-## Setup — Claude Code
+## Setup
 
-All scripts are bundled in this skill package.
-
-1. Copy the session-end hook:
+Install from ClawHub into your project:
 
 ```bash
-mkdir -p .claude/hooks
-cp .claude/skills/meter/meter-session-end.sh .claude/hooks/
-chmod +x .claude/hooks/meter-session-end.sh
+clawhub install agent-meter --dir .claude/skills
 ```
 
-2. Add to `.claude/settings.json`:
+Then run `/meter` — it handles everything automatically:
+- Copies the session-end hook to `.claude/hooks/`
+- Creates or updates `.claude/settings.json` with the Stop hook
+- Backfills any existing Claude Code sessions
+- Shows your spend summary
 
-```json
-{
-  "hooks": {
-    "Stop": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "/bin/bash .claude/hooks/meter-session-end.sh"
-          }
-        ]
-      }
-    ]
-  }
-}
-```
-
-3. Backfill historical sessions:
-
-```bash
-bash .claude/skills/meter/meter-parse-claude-sessions.sh
-```
+That's it. Future sessions are tracked automatically via the Stop hook.
 
 ### What the scripts do
 

@@ -26,12 +26,40 @@ if [ ! -f ".claude/hooks/meter-session-end.sh" ]; then
     cp "$SKILL_DIR/meter-session-end.sh" .claude/hooks/
     chmod +x .claude/hooks/meter-session-end.sh
     echo "SETUP: Installed session-end hook to .claude/hooks/"
-    echo "NOTE: Add the Stop hook to .claude/settings.json — see SKILL.md for config."
-    echo ""
   else
     echo "ERROR: meter-session-end.sh not found. Reinstall the agent-meter skill."
     exit 1
   fi
+fi
+
+# --- Ensure Stop hook is wired in settings.json ---
+SETTINGS_FILE=".claude/settings.json"
+HOOK_CMD="/bin/bash .claude/hooks/meter-session-end.sh"
+if [ -f "$SETTINGS_FILE" ]; then
+  # Check if the hook command is already present
+  if ! jq -e '.hooks.Stop[0].hooks[]? | select(.command == "'"$HOOK_CMD"'")' "$SETTINGS_FILE" >/dev/null 2>&1; then
+    # Merge the Stop hook into existing settings
+    jq --arg cmd "$HOOK_CMD" '
+      .hooks //= {} |
+      .hooks.Stop //= [{"hooks": []}] |
+      .hooks.Stop[0].hooks += [{"type": "command", "command": $cmd}]
+    ' "$SETTINGS_FILE" > "${SETTINGS_FILE}.tmp" && mv "${SETTINGS_FILE}.tmp" "$SETTINGS_FILE"
+    echo "SETUP: Added Stop hook to $SETTINGS_FILE"
+  fi
+else
+  # Create settings.json with the Stop hook
+  mkdir -p .claude
+  jq -n --arg cmd "$HOOK_CMD" '{
+    hooks: {
+      Stop: [{
+        hooks: [{
+          type: "command",
+          command: $cmd
+        }]
+      }]
+    }
+  }' > "$SETTINGS_FILE"
+  echo "SETUP: Created $SETTINGS_FILE with Stop hook"
 fi
 
 # --- Backfill from Claude Code transcripts ---
