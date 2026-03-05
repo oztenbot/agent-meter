@@ -54,7 +54,9 @@ if [ -n "$TRANSCRIPT" ] && [ -f "$TRANSCRIPT" ]; then
     [ "$TOTAL_CALLS" != "0" ] || exit 0
 
     # Detect model from transcript (first assistant message with model field)
-    MODEL=$(jq -r '[.[] | select(.type == "assistant" and .message.model != null) | .message.model][0] // "unknown"' "$TRANSCRIPT" 2>/dev/null) || MODEL="unknown"
+    # Stream instead of slurp — handles large transcripts without loading all into memory
+    MODEL=$(jq -r 'select(.type == "assistant" and .message.model != null) | .message.model' "$TRANSCRIPT" 2>/dev/null | head -1) || MODEL="unknown"
+    [ -n "$MODEL" ] || MODEL="unknown"
 
     # Estimate cost — use effective input tokens (input + cache_creation, cache_read is cheaper)
     # Cache read tokens are ~10% of input price for Anthropic
@@ -98,6 +100,14 @@ if [ -n "$TRANSCRIPT" ] && [ -f "$TRANSCRIPT" ]; then
         cache_read: $cache_read,
         cost_usd: ($cost_usd | tonumber),
         source: $source
-      }' >> "$SPEND_FILE"
+      }' > "$SPEND_DIR/pending_${SESSION_ID}.jsonl"
+
+    # Dedup: remove any prior record for this session, then append the new one
+    if grep -q "\"session_id\":\"$SESSION_ID\"" "$SPEND_FILE" 2>/dev/null; then
+      grep -v "\"session_id\":\"$SESSION_ID\"" "$SPEND_FILE" > "$SPEND_DIR/spend_dedup.jsonl" || true
+      mv "$SPEND_DIR/spend_dedup.jsonl" "$SPEND_FILE"
+    fi
+    cat "$SPEND_DIR/pending_${SESSION_ID}.jsonl" >> "$SPEND_FILE"
+    rm -f "$SPEND_DIR/pending_${SESSION_ID}.jsonl"
   fi
 fi
