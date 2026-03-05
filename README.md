@@ -248,15 +248,17 @@ If you're an agent (Claude Code, OpenClaw, or any framework supporting [agentski
 ### Claude Code
 
 ```bash
-npx clawhub install agent-meter
+cd ~/.claude && npx clawhub install agent-meter
 ```
+
+Skills must live under `~/.claude/skills/` for Claude Code to find them. `clawhub install` writes to `./skills/<slug>` relative to your working directory, so run it from `~/.claude`.
 
 Then run `/meter` — it auto-installs hooks on first invocation.
 
 ### OpenClaw
 
 ```bash
-npx clawhub install agent-meter
+cd ~/.claude && npx clawhub install agent-meter
 ```
 
 Add the bundled session parser to cron for continuous coverage:
