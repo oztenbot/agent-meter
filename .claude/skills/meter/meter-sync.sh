@@ -123,9 +123,11 @@ if [ "${1:-}" = "--dry-run" ]; then
   exit 0
 fi
 
-# --- Build batch payload ---
-# Inject agent_name into each record for server-side correlation
-PAYLOAD=$(echo "$UNSYNCED" | jq -sc --arg agent "$AGENT_NAME" '
+# --- POST to hosted backend ---
+echo "Syncing $RECORD_COUNT sessions to $ENDPOINT..."
+
+# Pipe directly from jq to curl to avoid ARG_MAX limits on large payloads
+RESPONSE=$(echo "$UNSYNCED" | jq -sc --arg agent "$AGENT_NAME" '
   {
     agentName: $agent,
     sessions: [.[] | {
@@ -145,16 +147,11 @@ PAYLOAD=$(echo "$UNSYNCED" | jq -sc --arg agent "$AGENT_NAME" '
       intent: (.intent // null)
     }]
   }
-')
-
-# --- POST to hosted backend ---
-echo "Syncing $RECORD_COUNT sessions to $ENDPOINT..."
-
-RESPONSE=$(curl -s -w "\n%{http_code}" \
+' | curl -s -w "\n%{http_code}" \
   -X POST \
   -H "Authorization: Bearer $API_KEY" \
   -H "Content-Type: application/json" \
-  -d "$PAYLOAD" \
+  -d @- \
   "$ENDPOINT/v1/sessions/batch")
 
 HTTP_CODE=$(echo "$RESPONSE" | tail -1)
