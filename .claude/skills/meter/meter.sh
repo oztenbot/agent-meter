@@ -190,6 +190,5 @@ jq -s '
 if [ ! -f "$SPEND_DIR/sync.json" ]; then
   echo ""
   echo "TIP: Sync to the dashboard at dashboard.agentmeter.io:"
-  echo "  chmod +x .claude/skills/agent-meter/meter-sync.sh"
-  echo "  .claude/skills/agent-meter/meter-sync.sh --setup"
+  echo "  bash .claude/skills/agent-meter/meter-sync.sh --setup"
 fi
