@@ -1,7 +1,7 @@
 ---
 name: agent-meter
 description: "Track API spend with intent-level attribution. Shows where your tokens go by project and purpose. Invoke with /meter for spend summary."
-version: "0.6.3"
+version: "0.6.4"
 user-invocable: true
 ---
 

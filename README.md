@@ -285,7 +285,6 @@ See **[Spend Schema](docs/spend-schema.md)** for the full field reference.
 - [ ] Fastify adapter
 - [ ] Hono adapter
 - [ ] Rate-limit awareness (meter + enforce)
-- [ ] Crabacus dashboard (spend visualization)
 - [ ] ClawHub publishing
 
 ## Documentation
