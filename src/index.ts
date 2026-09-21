@@ -13,6 +13,12 @@ export {
 } from "./transport/attestation.js";
 export { signPayload, verifySignature } from "./signing.js";
 export { generateId, timestamp } from "./utils.js";
+export {
+  cheaperThan,
+  formatSubcent,
+  parseSubcent,
+  sumSubcents,
+} from "./subcent.js";
 export type {
   AgentIdentity,
   Attestation,
