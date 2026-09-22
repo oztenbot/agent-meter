@@ -60,3 +60,57 @@ export function sumSubcents(values: readonly bigint[]): bigint {
 export function cheaperThan(a: bigint, b: bigint): boolean {
   return a < b;
 }
+
+/**
+ * True when a single call's price alone clears the rail's minimum-collection
+ * floor. A card rail that will not charge a card below $0.30 cannot settle a
+ * $0.0005 call by itself; enough volume must accumulate first (see
+ * {@link breakEvenCalls}). A rail with no floor (`floor === 0n`, the
+ * "no minimum fee" case, e.g. a feeless net) settles every price standalone.
+ */
+export function settleStandalone(perCall: bigint, floor: bigint): boolean {
+  if (perCall < 1n) {
+    throw new RangeError(`per-call price must be positive; got ${perCall}`);
+  }
+  if (floor < 0n) {
+    throw new RangeError(`collection floor must be non-negative; got ${floor}`);
+  }
+  return floor === 0n || perCall >= floor;
+}
+
+/**
+ * How many calls at `perCall` must accumulate before the batch reaches the
+ * rail's minimum-collection floor. Ceil division, exact in integers. Returns
+ * `0n` when the floor is zero (no minimum fee).
+ */
+export function breakEvenCalls(perCall: bigint, floor: bigint): bigint {
+  if (perCall < 1n) {
+    throw new RangeError(`per-call price must be positive; got ${perCall}`);
+  }
+  if (floor < 0n) {
+    throw new RangeError(`collection floor must be non-negative; got ${floor}`);
+  }
+  if (floor === 0n) {
+    return 0n;
+  }
+  return (floor + perCall - 1n) / perCall;
+}
+
+/**
+ * The exact integer multiple by which a per-call price falls short of the
+ * rail's minimum-collection floor: how many same-priced calls batch into one
+ * collectible charge. `0n` when there is no floor, `1n` when a single call
+ * clears it. The inverse lens on {@link breakEvenCalls}.
+ */
+export function feeFloorGap(perCall: bigint, floor: bigint): bigint {
+  if (perCall < 1n) {
+    throw new RangeError(`per-call price must be positive; got ${perCall}`);
+  }
+  if (floor < 0n) {
+    throw new RangeError(`collection floor must be non-negative; got ${floor}`);
+  }
+  if (floor === 0n) {
+    return 0n;
+  }
+  return (floor + perCall - 1n) / perCall;
+}
